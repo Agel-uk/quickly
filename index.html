@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Quickly - free everyday online tools in English and Arabic." />
+  <meta name="theme-color" content="#111111" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Quickly — Free Online Tools</title>
+  <style>
+    :root { --bg:#f5f6f8; --card:#fff; --text:#171717; --muted:#6b7280; --line:#e5e7eb; --dark:#111; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:var(--dark);color:#fff;padding:24px 18px;position:sticky;top:0;z-index:5}
+    .top{max-width:1100px;margin:auto;display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .brand h1{margin:0;font-size:34px}.brand p{margin:5px 0 0;color:#d1d5db;font-size:14px}
+    .lang{border:1px solid #444;background:#222;color:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+    main{max-width:1100px;margin:auto;padding:26px 18px 60px}
+    .hero{padding:22px 0 8px}
+    .hero h2{font-size:30px;margin:0 0 8px}.hero p{color:var(--muted);margin:0 0 18px}
+    .search{width:100%;padding:15px 16px;border:1px solid var(--line);border-radius:14px;font-size:16px;background:#fff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-top:20px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 2px 7px rgba(0,0,0,.03)}
+    .card h3{margin:0 0 8px;font-size:18px}.card p{margin:0 0 14px;color:var(--muted);min-height:40px}
+    button.primary{border:0;background:#111;color:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .toolbox{margin-top:24px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;display:none}
+    .toolbox h2{margin-top:0}
+    .fields{display:grid;gap:12px;max-width:560px}
+    .fields input,.fields textarea,.fields select{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;font-size:16px}
+    .result{margin-top:16px;padding:14px;border-radius:12px;background:#f3f4f6;font-weight:700;word-break:break-word}
+    .section-title{margin-top:34px}
+    .notice{margin-top:30px;padding:14px;border:1px dashed #d1d5db;border-radius:12px;color:var(--muted);font-size:14px}
+    footer{text-align:center;color:var(--muted);padding:26px}
+    [dir="rtl"] body{font-family:Tahoma,Arial,sans-serif}
+    @media(max-width:600px){.brand h1{font-size:28px}.hero h2{font-size:24px}.top{align-items:flex-start}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div class="brand">
+      <h1>Quickly</h1>
+      <p id="tagline">Free tools for everyday life</p>
+    </div>
+    <button class="lang" id="langBtn" onclick="toggleLang()">العربية</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h2 id="heroTitle">Useful tools. No registration.</h2>
+    <p id="heroText">Search, calculate, convert, and generate instantly.</p>
+    <input id="search" class="search" placeholder="Search tools..." oninput="renderTools()" />
+  </section>
+
+  <h2 class="section-title" id="toolsTitle">Tools</h2>
+  <div id="cards" class="grid"></div>
+
+  <section id="toolbox" class="toolbox"></section>
+
+  <div class="notice" id="notice">
+    Quickly is currently a free MVP. Paid subscriptions and ads can be added later after traffic is validated.
+  </div>
+</main>
+
+<footer id="footer">Quickly • Free to use • No registration required</footer>
+
+<script>
+let lang = localStorage.getItem("quickly_lang") || "en";
+
+const T = {
+  en:{
+    tagline:"Free tools for everyday life",
+    heroTitle:"Useful tools. No registration.",
+    heroText:"Search, calculate, convert, and generate instantly.",
+    search:"Search tools...",
+    tools:"Tools", open:"Open",
+    notice:"Quickly is currently a free MVP. Paid subscriptions and ads can be added later after traffic is validated.",
+    footer:"Quickly • Free to use • No registration required",
+    pctN:"Percentage Calculator", pctD:"Calculate a percentage of any number.",
+    billN:"Bill Splitter", billD:"Split a bill equally between people.",
+    ageN:"Age Calculator", ageD:"Calculate age from date of birth.",
+    passN:"Password Generator", passD:"Generate a strong random password.",
+    bmiN:"BMI Calculator", bmiD:"Calculate body mass index.",
+    discountN:"Discount Calculator", discountD:"Calculate final price after discount.",
+    wordsN:"Word & Character Counter", wordsD:"Count words and characters in text.",
+    tipN:"Tip Calculator", tipD:"Calculate tip and total bill.",
+    calc:"Calculate", generate:"Generate", copy:"Copy",
+    number:"Number", percent:"Percent", amount:"Amount", people:"People",
+    dob:"Date of birth", weight:"Weight (kg)", height:"Height (cm)",
+    price:"Original price", discount:"Discount %", text:"Enter text",
+    tip:"Tip %", result:"Result", invalid:"Enter valid values",
+    copied:"Copied",
+    taxN:"Tax Calculator", taxD:"Calculate tax amount and final price.",
+    markupN:"Markup Calculator", markupD:"Calculate markup and selling price.",
+    loanN:"Simple Loan Calculator", loanD:"Estimate monthly payment for a simple loan.",
+    compoundN:"Compound Interest", compoundD:"Estimate growth with compound interest.",
+    simpleN:"Simple Interest", simpleD:"Calculate simple interest.",
+    ratioN:"Ratio Calculator", ratioD:"Scale and compare two ratios.",
+    averageN:"Average Calculator", averageD:"Calculate the average of numbers.",
+    unitkmN:"Kilometers to Miles", unitkmD:"Convert kilometers to miles.",
+    unitmiN:"Miles to Kilometers", unitmiD:"Convert miles to kilometers.",
+    tempN:"Temperature Converter", tempD:"Convert Celsius, Fahrenheit and Kelvin.",
+    kgN:"Kilograms to Pounds", kgD:"Convert kilograms to pounds.",
+    lbN:"Pounds to Kilograms", lbD:"Convert pounds to kilograms.",
+    cmN:"Centimeters to Inches", cmD:"Convert centimeters to inches.",
+    inchN:"Inches to Centimeters", inchD:"Convert inches to centimeters.",
+    daysN:"Days Between Dates", daysD:"Calculate the number of days between two dates.",
+    dateaddN:"Add Days to Date", dateaddD:"Add or subtract days from a date.",
+    hoursN:"Hours to Minutes", hoursD:"Convert hours to minutes.",
+    secondsN:"Seconds to Minutes", secondsD:"Convert seconds to minutes.",
+    caseN:"Text Case Converter", caseD:"Convert text to upper, lower or title case.",
+    reverseN:"Reverse Text", reverseD:"Reverse any text instantly.",
+    slugN:"URL Slug Generator", slugD:"Create a clean URL slug from text.",
+    uuidN:"UUID Generator", uuidD:"Generate a random UUID."
+  },
+  ar:{
+    tagline:"أدوات مجانية للحياة اليومية",
+    heroTitle:"أدوات مفيدة بدون تسجيل.",
+    heroText:"ابحث واحسب وحوّل وأنشئ النتائج فوراً.",
+    search:"ابحث عن أداة...",
+    tools:"الأدوات", open:"فتح",
+    notice:"Quickly حالياً نسخة أولية مجانية. يمكن إضافة الاشتراكات والإعلانات لاحقاً بعد التأكد من وجود زيارات.",
+    footer:"Quickly • استخدام مجاني • بدون تسجيل",
+    pctN:"حاسبة النسبة المئوية", pctD:"احسب نسبة مئوية من أي رقم.",
+    billN:"تقسيم الفاتورة", billD:"قسّم الفاتورة بالتساوي بين الأشخاص.",
+    ageN:"حاسبة العمر", ageD:"احسب العمر من تاريخ الميلاد.",
+    passN:"مولّد كلمات المرور", passD:"أنشئ كلمة مرور قوية وعشوائية.",
+    bmiN:"حاسبة مؤشر كتلة الجسم", bmiD:"احسب مؤشر كتلة الجسم.",
+    discountN:"حاسبة الخصم", discountD:"احسب السعر النهائي بعد الخصم.",
+    wordsN:"عداد الكلمات والحروف", wordsD:"احسب الكلمات والحروف في النص.",
+    tipN:"حاسبة الإكرامية", tipD:"احسب الإكرامية وإجمالي الفاتورة.",
+    calc:"احسب", generate:"إنشاء", copy:"نسخ",
+    number:"الرقم", percent:"النسبة", amount:"المبلغ", people:"عدد الأشخاص",
+    dob:"تاريخ الميلاد", weight:"الوزن (كجم)", height:"الطول (سم)",
+    price:"السعر الأصلي", discount:"نسبة الخصم", text:"أدخل النص",
+    tip:"نسبة الإكرامية", result:"النتيجة", invalid:"أدخل قيماً صحيحة",
+    copied:"تم النسخ",
+    taxN:"حاسبة الضريبة", taxD:"احسب قيمة الضريبة والسعر النهائي.",
+    markupN:"حاسبة هامش الربح", markupD:"احسب الزيادة وسعر البيع.",
+    loanN:"حاسبة القرض البسيط", loanD:"قدّر القسط الشهري لقرض بسيط.",
+    compoundN:"الفائدة المركبة", compoundD:"قدّر النمو مع الفائدة المركبة.",
+    simpleN:"الفائدة البسيطة", simpleD:"احسب الفائدة البسيطة.",
+    ratioN:"حاسبة النسبة", ratioD:"قارن ووسّع نسبتين.",
+    averageN:"حاسبة المتوسط", averageD:"احسب متوسط مجموعة أرقام.",
+    unitkmN:"كيلومتر إلى ميل", unitkmD:"حوّل الكيلومترات إلى أميال.",
+    unitmiN:"ميل إلى كيلومتر", unitmiD:"حوّل الأميال إلى كيلومترات.",
+    tempN:"محول درجات الحرارة", tempD:"حوّل بين المئوية والفهرنهايت والكلفن.",
+    kgN:"كيلوغرام إلى رطل", kgD:"حوّل الكيلوغرام إلى رطل.",
+    lbN:"رطل إلى كيلوغرام", lbD:"حوّل الرطل إلى كيلوغرام.",
+    cmN:"سنتيمتر إلى بوصة", cmD:"حوّل السنتيمتر إلى بوصة.",
+    inchN:"بوصة إلى سنتيمتر", inchD:"حوّل البوصة إلى سنتيمتر.",
+    daysN:"الأيام بين تاريخين", daysD:"احسب عدد الأيام بين تاريخين.",
+    dateaddN:"إضافة أيام إلى تاريخ", dateaddD:"أضف أو اطرح أياماً من تاريخ.",
+    hoursN:"ساعات إلى دقائق", hoursD:"حوّل الساعات إلى دقائق.",
+    secondsN:"ثوانٍ إلى دقائق", secondsD:"حوّل الثواني إلى دقائق.",
+    caseN:"تحويل حالة النص", caseD:"حوّل النص إلى أحرف كبيرة أو صغيرة أو عنوان.",
+    reverseN:"عكس النص", reverseD:"اعكس أي نص فوراً.",
+    slugN:"منشئ رابط URL", slugD:"أنشئ رابطاً نظيفاً من النص.",
+    uuidN:"مولّد UUID", uuidD:"أنشئ UUID عشوائياً."
+  }
+};
+
+const toolDefs = [
+["pct","pctN","pctD"],["bill","billN","billD"],["age","ageN","ageD"],["pass","passN","passD"],
+["bmi","bmiN","bmiD"],["discount","discountN","discountD"],["words","wordsN","wordsD"],["tip","tipN","tipD"],
+["tax","taxN","taxD"],["markup","markupN","markupD"],["loan","loanN","loanD"],["compound","compoundN","compoundD"],
+["simple","simpleN","simpleD"],["ratio","ratioN","ratioD"],["average","averageN","averageD"],
+["unitkm","unitkmN","unitkmD"],["unitmi","unitmiN","unitmiD"],["temp","tempN","tempD"],
+["kg","kgN","kgD"],["lb","lbN","lbD"],["cm","cmN","cmD"],["inch","inchN","inchD"],
+["days","daysN","daysD"],["dateadd","dateaddN","dateaddD"],["hours","hoursN","hoursD"],
+["seconds","secondsN","secondsD"],["case","caseN","caseD"],["reverse","reverseN","reverseD"],
+["slug","slugN","slugD"],["uuid","uuidN","uuidD"]
+];
+function tr(k){ return T[lang][k] || k; }
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang==="ar" ? "rtl":"ltr";
+  document.getElementById("langBtn").textContent = lang==="ar" ? "English":"العربية";
+  ["tagline","heroTitle","heroText","toolsTitle","notice","footer"].forEach(id=>{
+    const map={toolsTitle:"tools"};
+    document.getElementById(id).textContent=tr(map[id]||id);
+  });
+  document.getElementById("search").placeholder=tr("search");
+  renderTools();
+}
+
+function toggleLang(){ lang = lang==="en" ? "ar":"en"; localStorage.setItem("quickly_lang",lang); applyLang(); }
+
+function renderTools(){
+  const q=document.getElementById("search").value.toLowerCase();
+  const cards=document.getElementById("cards");
+  cards.innerHTML="";
+  toolDefs.filter(([id,n,d]) => (tr(n)+" "+tr(d)).toLowerCase().includes(q)).forEach(([id,n,d])=>{
+    const el=document.createElement("div"); el.className="card";
+    el.innerHTML=`<h3>${tr(n)}</h3><p>${tr(d)}</p><button class="primary" onclick="openTool('${id}')">${tr("open")}</button>`;
+    cards.appendChild(el);
+  });
+}
+
+function openTool(id){
+  const b=document.getElementById("toolbox"); b.style.display="block";
+  const titles={pct:"pctN",bill:"billN",age:"ageN",pass:"passN",bmi:"bmiN",discount:"discountN",words:"wordsN",tip:"tipN",
+  tax:"taxN",markup:"markupN",loan:"loanN",compound:"compoundN",simple:"simpleN",ratio:"ratioN",average:"averageN",
+  unitkm:"unitkmN",unitmi:"unitmiN",temp:"tempN",kg:"kgN",lb:"lbN",cm:"cmN",inch:"inchN",days:"daysN",dateadd:"dateaddN",
+  hours:"hoursN",seconds:"secondsN",case:"caseN",reverse:"reverseN",slug:"slugN",uuid:"uuidN"};
+  const textTools=["words","case","reverse","slug"];
+  let inputs="";
+  if(id==="age"||id==="dateadd") inputs=`<input id="f1" type="date" placeholder="${tr("dob")}">`;
+  else if(id==="days") inputs=`<input id="f1" type="date"><input id="f2" type="date">`;
+  else if(id==="pass"||id==="uuid") inputs="";
+  else if(textTools.includes(id)) inputs=`<textarea id="f1" rows="7" placeholder="${tr("text")}"></textarea>`;
+  else if(id==="temp") inputs=`<input id="f1" type="number" placeholder="Value"><select id="f2"><option value="c">°C</option><option value="f">°F</option><option value="k">K</option></select>`;
+  else if(["hours","seconds"].includes(id)) inputs=`<input id="f1" type="number" placeholder="${tr("number")}">`;
+  else inputs=`<input id="f1" type="number" placeholder="${tr("number")}"><input id="f2" type="number" placeholder="${tr("percent")}">`;
+  const action=id==="pass"||id==="uuid" ? tr("generate") : tr("calc");
+  b.innerHTML=`<h2>${tr(titles[id])}</h2><div class="fields">${inputs}<button class="primary" onclick="runTool('${id}')">${action}</button><div id="res" class="result">—</div></div>`;
+  b.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function runTool(id){
+  const r=document.getElementById("res"), a=document.getElementById("f1")?.value, b=document.getElementById("f2")?.value;
+  const x=+a,y=+b;
+  if(["pct","bill","bmi","discount","tax","markup","loan","compound","simple","ratio","average"].includes(id) && !isFinite(x)) {r.textContent=tr("invalid");return}
+  if(id==="pct") r.textContent=isFinite(x*y/100)?x*y/100:tr("invalid");
+  else if(id==="bill") r.textContent=y>0?(x/y).toFixed(2):tr("invalid");
+  else if(id==="age"){if(!a){r.textContent=tr("invalid");return}let d=new Date(a),n=new Date(),v=n.getFullYear()-d.getFullYear();if(n<new Date(n.getFullYear(),d.getMonth(),d.getDate()))v--;r.textContent=v>=0?v+" "+(lang==="ar"?"سنة":"years"):tr("invalid")}
+  else if(id==="pass"){let c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*_-",p="";for(let i=0;i<18;i++)p+=c[Math.floor(Math.random()*c.length)];r.textContent=p}
+  else if(id==="uuid") r.textContent=crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+  else if(id==="bmi"){let h=y/100,v=x/(h*h);r.textContent=x>0&&h>0?v.toFixed(1):tr("invalid")}
+  else if(id==="discount") r.textContent=x>=0&&y>=0?(x*(1-y/100)).toFixed(2):tr("invalid");
+  else if(id==="words"){let t=a||"",w=t.trim()?t.trim().split(/\s+/).length:0;r.textContent=lang==="ar"?`الكلمات: ${w} | الحروف: ${t.length}`:`Words: ${w} | Characters: ${t.length}`}
+  else if(id==="tip"){let tip=x*y/100;r.textContent=lang==="ar"?`الإكرامية: ${tip.toFixed(2)} | الإجمالي: ${(x+tip).toFixed(2)}`:`Tip: ${tip.toFixed(2)} | Total: ${(x+tip).toFixed(2)}`}
+  else if(id==="tax") r.textContent=(x*(1+y/100)).toFixed(2);
+  else if(id==="markup") r.textContent=(x*(1+y/100)).toFixed(2);
+  else if(id==="simple") r.textContent=(x*y/100).toFixed(2);
+  else if(id==="compound") r.textContent=(x*Math.pow(1+y/100,5)).toFixed(2);
+  else if(id==="loan"){let rate=y/100/12,n=60,p=rate?x*rate*Math.pow(1+rate,n)/(Math.pow(1+rate,n)-1):x/n;r.textContent=p.toFixed(2)}
+  else if(id==="ratio"){if(y===0){r.textContent=tr("invalid");return}r.textContent=(x/y).toFixed(4)}
+  else if(id==="average"){let nums=(a||"").split(",").map(Number).filter(Number.isFinite);r.textContent=nums.length?(nums.reduce((s,v)=>s+v,0)/nums.length).toFixed(2):tr("invalid")}
+  else if(id==="unitkm") r.textContent=(x*0.621371).toFixed(4)+" mi";
+  else if(id==="unitmi") r.textContent=(x*1.609344).toFixed(4)+" km";
+  else if(id==="kg") r.textContent=(x*2.2046226218).toFixed(4)+" lb";
+  else if(id==="lb") r.textContent=(x*0.45359237).toFixed(4)+" kg";
+  else if(id==="cm") r.textContent=(x/2.54).toFixed(4)+" in";
+  else if(id==="inch") r.textContent=(x*2.54).toFixed(4)+" cm";
+  else if(id==="hours") r.textContent=(x*60).toFixed(2)+" min";
+  else if(id==="seconds") r.textContent=(x/60).toFixed(2)+" min";
+  else if(id==="temp"){let v=x,unit=b; if(unit==="c")r.textContent=(v*9/5+32).toFixed(2)+" °F | "+(v+273.15).toFixed(2)+" K"; else if(unit==="f")r.textContent=((v-32)*5/9).toFixed(2)+" °C | "+((v-32)*5/9+273.15).toFixed(2)+" K"; else r.textContent=(v-273.15).toFixed(2)+" °C | "+(v*9/5-459.67).toFixed(2)+" °F"}
+  else if(id==="days"){if(!a||!b){r.textContent=tr("invalid");return}r.textContent=Math.round(Math.abs((new Date(b)-new Date(a))/86400000))+" "+(lang==="ar"?"يوم":"days")}
+  else if(id==="dateadd"){if(!a||!isFinite(y)){r.textContent=tr("invalid");return}let d=new Date(a);d.setDate(d.getDate()+y);r.textContent=d.toISOString().slice(0,10)}
+  else if(id==="case") r.textContent=lang==="ar"? (a||"").toUpperCase() : (a||"").toUpperCase();
+  else if(id==="reverse") r.textContent=(a||"").split("").reverse().join("");
+  else if(id==="slug") r.textContent=(a||"").toLowerCase().trim().replace(/[^a-z0-9\u0600-\u06ff]+/g,"-").replace(/^-+|-+$/g,"");
+}
+async function copyResult(){
+  const txt=document.getElementById("res").textContent;
+  try{ await navigator.clipboard.writeText(txt); alert(tr("copied")); }catch(e){}
+}
+
+if("serviceWorker" in navigator){ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{})); }
+applyLang();
+</script>
+</body>
+</html>
